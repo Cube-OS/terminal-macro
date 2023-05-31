@@ -1,14 +1,10 @@
 use proc_macro::TokenStream;
 use proc_macro2::TokenStream as TokenStream2;
 use quote::*;
-use std::str::FromStr;
-use strum_macros::EnumIter;
-use strum::IntoEnumIterator;
-use syn::punctuated::Punctuated;
 use syn::*;
 use syn::parse::Parse;
 use syn::parse::ParseStream;
-use proc_macro2::{Punct, TokenTree, Spacing};
+use proc_macro2::TokenTree;
 
 fn skip_past_next_hash(input: ParseStream) -> Result<()> {
     input.step(|cursor| {
@@ -53,8 +49,12 @@ impl Parse for Command {
 }
 
 #[proc_macro]
-pub fn cmd_import(_input: TokenStream) -> TokenStream {
-    let file_string = std::fs::read_to_string("./commands.json").unwrap();
+pub fn cmd_import(file_path: TokenStream) -> TokenStream {
+    let file_path = file_path.to_string();
+    let file_path = file_path.replace(" ", "");
+    let file_path = file_path.replace("\"", "");
+    // println!("File path: {}", file_path);
+    let file_string = std::fs::read_to_string(file_path.to_string()).unwrap();
 
     let parts: Vec<String> = file_string
         .split("}")
@@ -262,7 +262,7 @@ pub fn cmd_import(_input: TokenStream) -> TokenStream {
                         serde_json::to_string(&Commands::#ident(id)).unwrap()
                     },
                 });
-                println!("Command: {}", ident);
+                // println!("Command: {}", ident);
             }
             CommandType::Empty => {},
         }
@@ -286,7 +286,33 @@ pub fn cmd_import(_input: TokenStream) -> TokenStream {
                 #command_handle
             }
         }
+
+        pub fn cli(service_ip: &str) {
+            let selection: Vec<Commands> = Commands::iter().collect();
+        
+            match Select::new().items(&selection).interact_opt() {
+                Ok(Some(s)) => {
+                    let json = handle_command(selection[s].clone());                  
+                    let socket = std::net::UdpSocket::bind(CLI_IP).unwrap();            
+                    println!("Start socket on: {:?}", socket);
+                    match socket.send_to(json.as_bytes(),service_ip) {
+                        Ok(_) => {
+                            let mut buf = [0; 1024];
+                            match socket.recv(&mut buf) {
+                                Ok(b) => {
+                                    let response = String::from_utf8_lossy(&buf[..b]);
+                                    println!("Response: {}", response);
+                                }
+                                Err(e) => println!("Error: {}",e),
+                            }
+                        }
+                        Err(e) => println!("Error: {}",e),
+                    }
+                }
+                _ => {},
+            }
+        }
     });
-    println!("{}", output.to_string());
+    // println!("{}", output.to_string());
     output.into()
 }
