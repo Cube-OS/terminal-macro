@@ -49,7 +49,7 @@ impl Parse for Command {
 }
 
 #[proc_macro]
-pub fn cmd_import(file_path: TokenStream) -> TokenStream {
+pub fn cli_macro(file_path: TokenStream) -> TokenStream {
     let file_path = file_path.to_string();
     let file_path = file_path.replace(" ", "");
     let file_path = file_path.replace("\"", "");
