@@ -150,11 +150,9 @@ pub fn cli_macro(file_path: TokenStream) -> TokenStream {
                 let mut userinput_ext_out = TokenStream2::new();
 
                 for (f_id,f_ty) in f_id.iter().zip(f_ty.iter()) {
-                    userinput_ext.extend(quote! {                        
-                        let mut input = String::new();
-                        std::io::stdin().read_line(&mut input).unwrap();
-                        let input = input.trim();
-                        let #f_id = serde_json::from_str::<#f_ty>(input).unwrap();
+                    userinput_ext.extend(quote! {  
+                        println!("{}: {}", stringify!(#f_id), stringify!(#f_ty));
+                        let #f_id = <#f_ty>::input();
                     });
                     userinput_ext_out.extend(quote! {
                         #f_id,
@@ -187,7 +185,7 @@ pub fn cli_macro(file_path: TokenStream) -> TokenStream {
                 // let variants = item.variants.clone().iter().map(|v| v.ident.clone()).collect::<Vec<_>>();
                 output.extend(quote!(
                 impl UserInput for #ident {
-                    fn input() -> Self {
+                    fn input() -> Self {                        
                         let variants = #ident::iter().collect::<Vec<_>>();
                         loop {
                             match Select::new().items(&variants).interact_opt() {
