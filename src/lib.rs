@@ -311,6 +311,7 @@ pub fn cli_macro(file_path: TokenStream) -> TokenStream {
             }
         }
     });
-    // println!("{}", output.to_string());
+    #[cfg(feature = "debug")]
+    println!("{}", output.to_string());
     output.into()
 }
