@@ -1,5 +1,5 @@
 [package]
-name = "cli-macro"
+name = "terminal-macro"
 version = "0.1.0"
 authors = ["Patrick Oppel <patrick.oppel94@gmail.com>"]
 edition = "2018"
