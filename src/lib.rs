@@ -46,26 +46,26 @@ pub fn terminal_macro(input: TokenStream) -> TokenStream {
         impl UserInput for String {}
         impl UserInput for bool {}
         impl UserInput for char {}
-        impl <T: serde::de::DeserializeOwned> UserInput for Vec<T> {}
-        impl <T: serde::de::DeserializeOwned> UserInput for Option<T> {}
-        // impl <T: serde::de::DeserializeOwned> UserInput for Vec<T> {
-        //     fn input() -> Self {
-        //         println!("Enter a valid JSON array (e.g., [1, 2, 3] for Vec<u8>)");
-        //         let mut input = String::new();
-        //         std::io::stdin().read_line(&mut input).unwrap();
-        //         let input = input.trim();
-        //         serde_json::from_str::<Self>(input).unwrap()
-        //     }
-        // }
-        // impl <T: serde::de::DeserializeOwned> UserInput for Option<T> {
-        //     fn input() -> Self {
-        //         println!("Enter a valid JSON value or null (e.g., 1 or null for Option<u8>)");
-        //         let mut input = String::new();
-        //         std::io::stdin().read_line(&mut input).unwrap();
-        //         let input = input.trim();
-        //         serde_json::from_str::<Self>(input).unwrap()
-        //     }
-        // }
+        // impl <T: serde::de::DeserializeOwned> UserInput for Vec<T> {}
+        // impl <T: serde::de::DeserializeOwned> UserInput for Option<T> {}
+        impl <T: serde::de::DeserializeOwned> UserInput for Vec<T> {
+            fn input() -> Self {
+                println!("Enter a valid JSON array (e.g., [1, 2, 3] for Vec<u8>)");
+                let mut input = String::new();
+                std::io::stdin().read_line(&mut input).unwrap();
+                let input = input.trim();
+                serde_json::from_str::<Self>(input).unwrap()
+            }
+        }
+        impl <T: serde::de::DeserializeOwned> UserInput for Option<T> {
+            fn input() -> Self {
+                println!("Enter a valid JSON value or null (e.g., 1 or null for Option<u8>)");
+                let mut input = String::new();
+                std::io::stdin().read_line(&mut input).unwrap();
+                let input = input.trim();
+                serde_json::from_str::<Self>(input).unwrap()
+            }
+        }
         pub fn get_input<T: UserInput>() -> T {
             T::input()
         }
