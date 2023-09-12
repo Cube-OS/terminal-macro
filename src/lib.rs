@@ -132,8 +132,6 @@ pub fn terminal_macro(input: TokenStream) -> TokenStream {
         enum_struct.extend(enum_struct_ext);
     }
 
-    enum_struct = remove_duplicates(&enum_struct.to_string()).parse().unwrap();
-
     output.extend(quote!{
         #commands
 
