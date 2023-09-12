@@ -143,7 +143,7 @@ pub fn terminal_macro(input: TokenStream) -> TokenStream {
     output.into()
 }
 
-fn handle_ident(ident: Ident, mut implemented: HashSet<String>) -> TokenStream2 {    
+fn handle_ident(ident: Ident, implemented: mut HashSet<String>) -> TokenStream2 {    
     if let Some(item) = find_struct_or_enum_definition(&ident.clone()) {
         match item {
             Item::Struct(item_struct) => {
@@ -161,7 +161,7 @@ fn handle_ident(ident: Ident, mut implemented: HashSet<String>) -> TokenStream2 
     }
 } 
 
-fn handle_struct(item: ItemStruct, mut implemented: HashSet<String>) -> TokenStream2 {
+fn handle_struct(item: ItemStruct, implemented: mut HashSet<String>) -> TokenStream2 {
     let mut output = TokenStream2::new();
     let id = item.ident.clone();
     let fields = match item.fields.clone() {
