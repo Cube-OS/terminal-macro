@@ -139,6 +139,9 @@ pub fn terminal_macro(input: TokenStream) -> TokenStream {
     });
 
     println!("{}",output.to_string());
+    for element in &implemented {
+        println!("{}", element);
+    }
 
     output.into()
 }
