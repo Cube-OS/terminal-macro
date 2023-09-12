@@ -104,7 +104,7 @@ pub fn terminal_macro(input: TokenStream) -> TokenStream {
                         continue;
                     } else {
                         implemented.insert(id.to_string());
-                        enum_struct_ext.extend(handle_ident(id,implemented.clone()));
+                        enum_struct_ext.extend(handle_ident(id,&mut implemented));
                     }
                 }
             }
@@ -139,9 +139,6 @@ pub fn terminal_macro(input: TokenStream) -> TokenStream {
     });
 
     println!("{}",output.to_string());
-    for element in &implemented {
-        println!("{}", element);
-    }
 
     output.into()
 }
@@ -193,7 +190,7 @@ fn handle_struct(item: ItemStruct, mut implemented: HashSet<String>) -> TokenStr
                             continue;
                         } else {
                             implemented.insert(id.to_string());
-                            enum_struct_ext.extend(handle_ident(id,implemented.clone()));
+                            enum_struct_ext.extend(handle_ident(id,&mut implemented));
                         }
                     }
                 }
@@ -240,35 +237,6 @@ fn handle_enum(item: ItemEnum) -> TokenStream2 {
             }
         }
     });
-    output
-}
-
-fn remove_duplicates(s: &str) -> String {
-    let mut items: Vec<syn::Item> = syn::parse_file(s).unwrap().items;
-
-    let mut unique_items: Vec<syn::Item> = Vec::new();
-    let mut seen = std::collections::HashSet::<String>::new();
-
-    for item in items {
-        match &item {
-            Item::Struct(item_struct) => {
-                if seen.insert(item_struct.ident.to_string()) {
-                    unique_items.push(item);
-                }
-            }
-            Item::Enum(item_enum) => {
-                if seen.insert(item_enum.ident.to_string()) {
-                    unique_items.push(item);
-                }
-            }
-            _ => {}
-        }
-    }
-
-    let mut output = String::new();
-    for item in &unique_items {
-        output.push_str(&format!("{}\n", item.to_token_stream().to_string()));
-    }
     output
 }
 
@@ -462,197 +430,3 @@ fn read_from_git_dependency(package_name: Option<String>, ident: &syn::Ident) ->
     }
     None
 }
-
-    
-//     let mut command_fmt = TokenStream2::new();
-//     let mut command_handle = TokenStream2::new();
-//     for command in commands {
-//         match command.item{
-//             CommandType::Struct(item) => {
-//                 output.extend(quote! {
-//                     #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]    
-//                     #item
-//                 }); 
-
-//                 // derive UserInput Trait for the struct
-//                 let ident = item.ident.clone();
-//                 let fields = match item.fields.clone() {
-//                     Fields::Named(fields) => fields.named,                    
-//                     _ => panic!("Only named fields are supported"),
-//                 };
-//                 let (f_id,f_ty): (Vec<Ident>,Vec<Type>) = fields.iter().map(|f| {
-//                     let ident = f.ident.clone().unwrap();
-//                     let ty = f.ty.clone();
-//                     (ident,ty)
-//                 }).unzip::<Ident,Type,Vec<_>,Vec<_>>();
-                
-//                 // Read in the User input for every field and parse it
-//                 let mut userinput_ext = TokenStream2::new();
-//                 let mut userinput_ext_out = TokenStream2::new();
-
-//                 for (f_id,f_ty) in f_id.iter().zip(f_ty.iter()) {
-//                     userinput_ext.extend(quote! {  
-//                         println!("{}: {}", stringify!(#f_id), stringify!(#f_ty));
-//                         let #f_id = <#f_ty>::input();
-//                     });
-//                     userinput_ext_out.extend(quote! {
-//                         #f_id,
-//                     });
-//                 }
-
-//                 output.extend(quote! {
-//                     impl UserInput for #ident {
-//                         fn input() -> Self {
-//                             #userinput_ext
-//                             #ident {
-//                                 #userinput_ext_out
-//                             }
-//                         }
-//                     }
-//                 });                               
-//             }
-//             CommandType::Enum(item) => {  
-//                 let ident = item.ident.clone();              
-//                 output.extend(quote! {
-//                 #[derive(Display, Debug, Clone, PartialEq, EnumIter,Serialize, Deserialize)]
-//                 #item
-//                 impl Default for #ident {
-//                     fn default() -> Self {
-//                         #ident::iter().next().unwrap()
-//                     }
-//                 }  
-//                 });
-//                 // derive UserInput Trait for the enum
-//                 // let variants = item.variants.clone().iter().map(|v| v.ident.clone()).collect::<Vec<_>>();
-//                 output.extend(quote!(
-//                 impl UserInput for #ident {
-//                     fn input() -> Self {                        
-//                         let variants = #ident::iter().collect::<Vec<_>>();
-//                         loop {
-//                             match Select::new().items(&variants).interact_opt() {
-//                                 Ok(Some(s)) => {
-//                                     return variants[s].clone()
-//                                 }
-//                                 _ => continue,
-//                             }
-//                         }
-//                     }
-//                 }
-//                 ))                
-//             }
-//             CommandType::Command(item) => {
-//                 let ident = item.ident.clone();
-//                 let strident = ident.to_string();
-//                 output.extend(quote! {
-//                 #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
-//                 pub #item
-//                 }); 
-
-//                 // derive UserInput Trait for the struct
-//                 let ident = item.ident.clone();
-//                 let fields = match item.fields.clone() {
-//                     Fields::Named(fields) => fields.named,                    
-//                     _ => panic!("Only named fields are supported"),
-//                 };
-//                 let (f_id,f_ty): (Vec<Ident>,Vec<Type>) = fields.iter().map(|f| {
-//                     let ident = f.ident.clone().unwrap();
-//                     let ty = f.ty.clone();
-//                     (ident,ty)
-//                 }).unzip::<Ident,Type,Vec<_>,Vec<_>>();
-                
-//                 // Read in the User input for every field and parse it
-//                 let mut userinput_ext = TokenStream2::new();
-//                 let mut userinput_ext_out = TokenStream2::new();
-
-//                 for (f_id,f_ty) in f_id.iter().zip(f_ty.iter()) {
-//                     userinput_ext.extend(quote! {   
-//                         println!("{}: {}",stringify!(#f_id),stringify!(#f_ty));
-//                         // let mut input = String::new();
-//                         // std::io::stdin().read_line(&mut input).unwrap();
-//                         // let input = input.trim();
-//                         let #f_id = <#f_ty>::input();
-//                     });
-//                     userinput_ext_out.extend(quote! {
-//                         #f_id,
-//                     });
-//                 }
-
-//                 output.extend(quote! {
-//                     impl UserInput for #ident {
-//                         fn input() -> Self {
-//                             #userinput_ext
-//                             #ident {
-//                                 #userinput_ext_out
-//                             }
-//                         }
-//                     }
-//                 });
-
-//                 command_ext.extend(quote! {
-//                     #ident(#ident),
-//                 });
-//                 command_fmt.extend(quote! {
-//                     Commands::#ident(i) => write!(f, #strident),
-//                 });
-//                 command_handle.extend(quote! {
-//                     Commands::#ident(i) => {
-//                         // format!("{:?}", get_input::<#ident>())
-//                         let id = get_input::<#ident>();
-//                         serde_json::to_string(&Commands::#ident(id)).unwrap()
-//                     },
-//                 });
-//                 // println!("Command: {}", ident);
-//             }
-//             CommandType::Empty => {},
-//         }
-//     }
-    
-//     output.extend(quote! {
-//         #[derive(Debug, Clone, PartialEq, EnumIter,Serialize, Deserialize)]
-//         pub enum Commands {
-//             #command_ext
-//         }
-//         impl std::fmt::Display for Commands {
-//             fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-//                 match self {
-//                     #command_fmt
-//                 }                
-//             }            
-//         }
-
-//         pub fn handle_command(command: Commands) -> String {
-//             match command {
-//                 #command_handle
-//             }
-//         }
-
-//         pub fn cli(service_ip: &str) {
-//             let selection: Vec<Commands> = Commands::iter().collect();
-        
-//             match Select::new().items(&selection).interact_opt() {
-//                 Ok(Some(s)) => {
-//                     let json = handle_command(selection[s].clone());                  
-//                     let socket = std::net::UdpSocket::bind(CLI_IP).unwrap();            
-//                     println!("Start socket on: {:?}", socket);
-//                     match socket.send_to(json.as_bytes(),service_ip) {
-//                         Ok(_) => {
-//                             let mut buf = [0; 1024];
-//                             match socket.recv(&mut buf) {
-//                                 Ok(b) => {
-//                                     let response = String::from_utf8_lossy(&buf[..b]);
-//                                     println!("Response: {}", response);
-//                                 }
-//                                 Err(e) => println!("Error: {}",e),
-//                             }
-//                         }
-//                         Err(e) => println!("Error: {}",e),
-//                     }
-//                 }
-//                 _ => {},
-//             }
-//         }
-//     });
-//     #[cfg(feature = "debug")]
-//     println!("{}", output.to_string());
-//     output.into()
-// }
