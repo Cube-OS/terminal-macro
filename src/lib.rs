@@ -190,7 +190,7 @@ fn handle_struct(item: ItemStruct, implemented: &mut HashSet<String>) -> TokenSt
                             continue;
                         } else {
                             implemented.insert(id.to_string());
-                            enum_struct_ext.extend(handle_ident(id,&mut implemented));
+                            enum_struct_ext.extend(handle_ident(id,implemented));
                         }
                     }
                 }
