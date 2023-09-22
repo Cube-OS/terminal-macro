@@ -120,7 +120,7 @@ pub fn terminal_macro(input: TokenStream) -> TokenStream {
                     #id {
                         #(
                             #name: {
-                                print!("{}: {}",stringify!(#name),stringify!(#typ));
+                                println!("{}: {}",stringify!(#name),stringify!(#typ));
                                 get_input::<#typ>()
                             },
                         )*
