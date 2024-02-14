@@ -21,7 +21,7 @@ pub fn terminal_macro(input: TokenStream) -> TokenStream {
 
     let mut output = TokenStream2::new();
     output.extend(quote!{
-        pub trait UserInput: serde::de::DeserializeOwned + Sized + Default + std::fmt::Debug {
+        pub trait UserInput: serde::de::DeserializeOwned + serde::ser::Serialize + Sized + Default + std::fmt::Debug {
             fn input() -> Self {
                 let mut input = String::new();
                 std::io::stdin().read_line(&mut input).unwrap();
@@ -48,7 +48,7 @@ pub fn terminal_macro(input: TokenStream) -> TokenStream {
         impl UserInput for char {}
         // impl <T: serde::de::DeserializeOwned> UserInput for Vec<T> {}
         // impl <T: serde::de::DeserializeOwned> UserInput for Option<T> {}
-        impl <T: serde::de::DeserializeOwned + std::fmt::Debug + Default> UserInput for Vec<T> {
+        impl <T: serde::de::DeserializeOwned + serde::ser::Serialize + std::fmt::Debug + Default> UserInput for Vec<T> {
             fn input() -> Self {
                 println!("{}", format!("Vec<{}>: [{:?},]", std::any::type_name::<T>(), T::default()));
                 // println!("Enter a valid JSON array (e.g., [1, 2, 3] for Vec<u8>)");
@@ -58,7 +58,7 @@ pub fn terminal_macro(input: TokenStream) -> TokenStream {
                 serde_json::from_str::<Self>(input).unwrap()
             }
         }
-        impl <T: serde::de::DeserializeOwned + std::fmt::Debug + Default> UserInput for Option<T> {
+        impl <T: serde::de::DeserializeOwned + serde::ser::Serialize + std::fmt::Debug + Default> UserInput for Option<T> {
             fn input() -> Self {
                 // println!("{}", format!("Option<{}>: {:?}", std::any::type_name::<T>(), T::default()));
                 println!("{:?}", T::default());
@@ -71,7 +71,7 @@ pub fn terminal_macro(input: TokenStream) -> TokenStream {
         }
         pub fn get_input<T: UserInput>() -> T {
             T::input()
-        }
+        }        
     });
 
     let mut commands = TokenStream2::new();
@@ -112,7 +112,7 @@ pub fn terminal_macro(input: TokenStream) -> TokenStream {
 
         commands.extend(quote!{
             #[derive(Debug, Default, Clone, Serialize, Deserialize)]
-            struct #id {
+            pub struct #id {
                 #(#name: #typ,)*
             }
             impl UserInput for #id {
@@ -120,7 +120,7 @@ pub fn terminal_macro(input: TokenStream) -> TokenStream {
                     #id {
                         #(
                             #name: {
-                                print!("{}: {}",stringify!(#name),stringify!(#typ));
+                                println!("{}: {}",stringify!(#name),stringify!(#typ));
                                 get_input::<#typ>()
                             },
                         )*
