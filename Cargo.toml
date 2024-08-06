@@ -19,7 +19,7 @@ strum = "0.24"
 strum_macros = "0.24"
 
 [patch.crates-io]
-cargo-platform = "0.1.7"
+cargo-platform = "=0.1.7"
 
 [features]
 default = []
